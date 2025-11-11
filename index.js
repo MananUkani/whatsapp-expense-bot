@@ -26,26 +26,20 @@ async function appendExpense(category, amount, remaining) {
 }
 
 async function startBot() {
-  // Baileys version check
   const { version } = await fetchLatestBaileysVersion();
-
-  // Auth state stored in 'auth' folder
   const { state, saveCreds } = await useMultiFileAuthState('auth');
 
-  // 👇 Add your phone number in international format (no + sign)
-  // Example: "919876543210" for India
-  const phoneNumber = process.env.WA_PHONE_NUMBER; 
+  // 👇 Your phone number in international format (no + sign)
+  const phoneNumber = "917984498982";
 
   const sock = makeWASocket({
     version,
     auth: state,
-    mobile: { number: phoneNumber }, // pairing code mode
+    mobile: { number: phoneNumber }, // pairing code login
   });
 
-  // Save credentials whenever they update
   sock.ev.on('creds.update', saveCreds);
 
-  // Listen for connection updates
   sock.ev.on('connection.update', (update) => {
     const { pairingCode, connection } = update;
     if (pairingCode) {
@@ -57,7 +51,6 @@ async function startBot() {
     }
   });
 
-  // Handle incoming messages
   sock.ev.on('messages.upsert', async ({ messages }) => {
     const msg = messages[0];
     if (!msg.message || !msg.message.conversation) return;
