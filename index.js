@@ -1,6 +1,6 @@
 // WhatsApp Expense Bot using Baileys + Google Sheets
 
-const { default: makeWASocket, useMultiFileAuthState } = require('@whiskeysockets/baileys');
+const { makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 const { google } = require('googleapis');
 
 // Budget in memory (simple version)
@@ -26,11 +26,25 @@ async function appendExpense(category, amount, remaining) {
 }
 
 async function startBot() {
-  const { state, saveCreds } = await useMultiFileAuthState('auth');
-  const sock = makeWASocket({ auth: state });
+  // Baileys version check
+  const { version } = await fetchLatestBaileysVersion();
 
+  // Auth state stored in 'auth' folder
+  const { state, saveCreds } = await useMultiFileAuthState('auth');
+
+  const sock = makeWASocket({
+    version,
+    auth: state,
+    printQRInTerminal: true, // shows QR in logs
+    // pairing code mode (optional)
+    // pass your phone number here if you want numeric code instead of QR
+    // e.g. phoneNumber: "919876543210"
+  });
+
+  // Save credentials whenever they update
   sock.ev.on('creds.update', saveCreds);
 
+  // Handle incoming messages
   sock.ev.on('messages.upsert', async ({ messages }) => {
     const msg = messages[0];
     if (!msg.message || !msg.message.conversation) return;
