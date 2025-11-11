@@ -1,4 +1,4 @@
-// WhatsApp Expense Bot using Baileys + Google Sheets
+// WhatsApp Expense Bot using Baileys + Google Sheets (pairing code login)
 
 const { makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 const { google } = require('googleapis');
@@ -32,17 +32,30 @@ async function startBot() {
   // Auth state stored in 'auth' folder
   const { state, saveCreds } = await useMultiFileAuthState('auth');
 
+  // 👇 Add your phone number in international format (no + sign)
+  // Example: "919876543210" for India
+  const phoneNumber = process.env.WA_PHONE_NUMBER; 
+
   const sock = makeWASocket({
     version,
     auth: state,
-    printQRInTerminal: true, // shows QR in logs
-    // pairing code mode (optional)
-    // pass your phone number here if you want numeric code instead of QR
-    // e.g. phoneNumber: "919876543210"
+    mobile: { number: phoneNumber }, // pairing code mode
   });
 
   // Save credentials whenever they update
   sock.ev.on('creds.update', saveCreds);
+
+  // Listen for connection updates
+  sock.ev.on('connection.update', (update) => {
+    const { pairingCode, connection } = update;
+    if (pairingCode) {
+      console.log('📱 Pairing code:', pairingCode);
+      console.log('Open WhatsApp → Linked Devices → Link with code → enter this number');
+    }
+    if (connection === 'open') {
+      console.log('✅ WhatsApp connected');
+    }
+  });
 
   // Handle incoming messages
   sock.ev.on('messages.upsert', async ({ messages }) => {
