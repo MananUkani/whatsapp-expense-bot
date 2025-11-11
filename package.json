@@ -1,0 +1,12 @@
+{
+  "name": "whatsapp-expense-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.0.0",
+    "googleapis": "^105.0.0"
+  }
+}
